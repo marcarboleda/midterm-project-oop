@@ -7,6 +7,7 @@ using namespace std;
 
 class Item {
 private:
+    // Encapsulation: Private attributes, encapsulating the internal state of the item.
     string id;
     string name;
     int quantity;
@@ -14,6 +15,7 @@ private:
     string category;
 
 public:
+    // Constructor to initialize item
     Item(string id, string name, int quantity, double price, string category)
             : id(id), name(name), quantity(quantity), price(price), category(category) {}
 
@@ -24,11 +26,13 @@ public:
     double getPrice() const { return price; }
     string getCategory() const { return category; }
 
+    // Encapsulation
     // Setter methods
     void setQuantity(int newQuantity) { quantity = newQuantity; }
     void setPrice(double newPrice) { price = newPrice; }
 
-    // Display item details in a table format
+    // Abstraction
+    // public method to display the items
     void displayItem() const {
         cout << left << setw(10) << id << setw(20) << name << setw(10) << quantity << setw(10) << price << setw(15) << category << endl;
     }
@@ -44,7 +48,7 @@ public:
 
     ~Inventory() {
         for (int i = 0; i < itemCount; ++i) {
-            delete items[i];  // Free memory for each item
+            delete items[i];  
         }
     }
 
@@ -141,8 +145,8 @@ public:
         for (int i = 0; i < itemCount; ++i) {
             if (items[i]->getId() == id) {
                 cout << "Item " << items[i]->getName() << " has been removed from the inventory." << endl;
-                delete items[i];  // Free memory
-                items[i] = items[--itemCount];  // Replace with last item
+                delete items[i]; 
+                items[i] = items[--itemCount];  
                 return;
             }
         }
@@ -195,7 +199,7 @@ public:
         cout << "Item not found!" << endl;
     }
 
-    // Sort items (by quantity or price, ascending or descending) using manual bubble sort
+    // Sort items (by quantity or price, ascending or descending) 
     void sortItems(bool byQuantity, bool ascending) {
         for (int i = 0; i < itemCount - 1; ++i) {
             for (int j = 0; j < itemCount - i - 1; ++j) {
@@ -230,7 +234,7 @@ public:
         }
     }
 
-    // Display low stock items (quantity <= 5)
+    // Display low stock items
     void displayLowStockItems() const {
         bool found = false;
         cout << left << setw(10) << "ID" << setw(20) << "Name" << setw(10) << "Quantity" << setw(10) << "Price" << setw(15) << "Category" << endl;
@@ -270,10 +274,10 @@ double getValidDouble() {
         cin >> value;
         if (cin.fail() || value <= 0) {
             cin.clear(); // Clear the error flag
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Invalid input. Please enter a positive number: ";
         } else {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard any remaining input
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
             return value;
         }
     }
@@ -285,10 +289,10 @@ int getValidInt() {
         cin >> value;
         if (cin.fail() || value <= 0) {
             cin.clear(); // Clear the error flag
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Invalid input. Please enter a positive integer: ";
         } else {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard any remaining input
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
             return value;
         }
     }
