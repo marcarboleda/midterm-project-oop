@@ -59,7 +59,7 @@ public:
             case 1: return "Clothing";
             case 2: return "Electronics";
             case 3: return "Entertainment";
-            default: return "Unknown";
+            default: return "";
         }
     }
 
@@ -83,23 +83,52 @@ public:
         for (int i = 0; i < itemCount; ++i) {
             if (items[i]->getId() == id) {
                 int choice;
-                cout << "[1] Update Quantity\n[2] Update Price\nEnter choice: ";
-                cin >> choice;
+                while (true) {
+                    cout << "\n[1] Update Quantity\n[2] Update Price\nEnter choice: ";
+                    cin >> choice;
+
+                    if (cin.fail() || (choice != 1 && choice != 2)) {
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << "Invalid choice! Please enter 1 or 2." << endl;
+                    } else {
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        break;
+                    }
+                }
 
                 if (choice == 1) {
                     int newQuantity;
-                    cout << "Enter new quantity: ";
-                    cin >> newQuantity;
-                    cout << "Quantity of Item " << items[i]->getName() << " is updated from " << items[i]->getQuantity() << " to " << newQuantity << endl;
-                    items[i]->setQuantity(newQuantity);
+                    while (true) {
+                        cout << "Enter new quantity: ";
+                        cin >> newQuantity;
+
+                        if (cin.fail() || newQuantity <= 0) {
+                            cin.clear();
+                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                            cout << "Invalid input. Please enter a positive integer." << endl;
+                        } else {
+                            cout << "Quantity of Item " << items[i]->getName() << " is updated from " << items[i]->getQuantity() << " to " << newQuantity << endl;
+                            items[i]->setQuantity(newQuantity);
+                            break;
+                        }
+                    }
                 } else if (choice == 2) {
                     double newPrice;
-                    cout << "Enter new price: ";
-                    cin >> newPrice;
-                    cout << "Price of Item " << items[i]->getName() << " is updated from " << items[i]->getPrice() << " to " << newPrice << endl;
-                    items[i]->setPrice(newPrice);
-                } else {
-                    cout << "Invalid choice!" << endl;
+                    while (true) {
+                        cout << "Enter new price: ";
+                        cin >> newPrice;
+
+                        if (cin.fail() || newPrice <= 0) {
+                            cin.clear();
+                            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                            cout << "Invalid input. Please enter a positive number." << endl;
+                        } else {
+                            cout << "Price of Item " << items[i]->getName() << " is updated from " << items[i]->getPrice() << " to " << newPrice << endl;
+                            items[i]->setPrice(newPrice);
+                            break;
+                        }
+                    }
                 }
                 return;
             }
@@ -166,16 +195,25 @@ public:
         cout << "Item not found!" << endl;
     }
 
-    // Sort items (by quantity or price, ascending or descending)
+    // Sort items (by quantity or price, ascending or descending) using manual bubble sort
     void sortItems(bool byQuantity, bool ascending) {
         for (int i = 0; i < itemCount - 1; ++i) {
             for (int j = 0; j < itemCount - i - 1; ++j) {
-                bool condition = byQuantity
-                                 ? (ascending ? items[j]->getQuantity() > items[j + 1]->getQuantity()
-                                              : items[j]->getQuantity() < items[j + 1]->getQuantity())
-                                 : (ascending ? items[j]->getPrice() > items[j + 1]->getPrice()
-                                              : items[j]->getPrice() < items[j + 1]->getPrice());
+                bool condition;
 
+                if (byQuantity) {
+                    // Sorting by quantity
+                    condition = ascending 
+                                ? (items[j]->getQuantity() > items[j + 1]->getQuantity())
+                                : (items[j]->getQuantity() < items[j + 1]->getQuantity());
+                } else {
+                    // Sorting by price
+                    condition = ascending 
+                                ? (items[j]->getPrice() > items[j + 1]->getPrice())
+                                : (items[j]->getPrice() < items[j + 1]->getPrice());
+                }
+
+                // Swap if the condition is met
                 if (condition) {
                     Item* temp = items[j];
                     items[j] = items[j + 1];
@@ -185,7 +223,7 @@ public:
         }
 
         // Display sorted items
-        cout << left << setw(10) << "ID" << setw(20) << "Name" << setw(10) << "Quantity" << setw(10) << "Price" << endl;
+        cout << left << setw(10) << "ID" << setw(20) << "Name" << setw(10) << "Quantity" << setw(10) << "Price" << setw(15) << "Category" << endl;
         cout << "----------------------------------------------------------" << endl;
         for (int i = 0; i < itemCount; ++i) {
             items[i]->displayItem();
@@ -231,10 +269,11 @@ double getValidDouble() {
     while (true) {
         cin >> value;
         if (cin.fail() || value <= 0) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.clear(); // Clear the error flag
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
             cout << "Invalid input. Please enter a positive number: ";
         } else {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard any remaining input
             return value;
         }
     }
@@ -245,18 +284,19 @@ int getValidInt() {
     while (true) {
         cin >> value;
         if (cin.fail() || value <= 0) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.clear(); // Clear the error flag
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
             cout << "Invalid input. Please enter a positive integer: ";
         } else {
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard any remaining input
             return value;
         }
     }
 }
-
+ 
 int main() {
     Inventory inventory;
-    int choice;
+    string choice;
 
     do {
         cout << "\n==================== MENU ====================\n";
@@ -269,136 +309,182 @@ int main() {
         cout << "[7] - Sort Items\n";
         cout << "[8] - Display Low Stock Items\n";
         cout << "[9] - Exit\n";
-        cout << "\n==============================================\n";
+        cout << "==============================================\n";
         cout << "Enter your choice: ";
+        cin >> choice;
 
-        while (true) {
-            cin >> choice;
-            if (cin.fail()) {
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Invalid input! Please enter a number (1-9): ";
-            } else {
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                break;
-            }
+        if (cin.fail() || (choice != "1" && choice != "2" && choice != "3" && 
+                           choice != "4" && choice != "5" && choice != "6" &&
+                           choice != "7" && choice != "8" && choice != "9")) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "\nInvalid input. Please enter a valid option." << endl;
+            cout << endl;
+            continue;
         }
 
-        switch (choice) {
-            case 1: {
-                cout << "Select category (1: Clothing, 2: Electronics, 3: Entertainment): ";
-                int category = getValidInt();
-                string id, name;
+        if (choice == "1") {
+            string id, name;
+            int quantity, category;
+            double price;
+
+            while (true) {
+                    cout << "\nSelect category:\n[1] Clothing\n[2] Electronics\n[3] Entertainment\nEnter choice: ";
+                    category = getValidInt();
+
+                    if (cin.fail() || (category != 1 && category != 2 && category != 3)) {
+                        cin.clear();
+                        cout << "Invalid choice! Please enter 1, 2, or 3." << endl;
+                    } else {
+                        break;
+                    }
+                }
+
+            cout << "Enter item ID (3 digits): ";
+            cin >> id;
+            while (!isValidItemId(id)) {
                 cout << "Enter item ID (3 digits): ";
                 cin >> id;
+            }
 
-                if (!isValidItemId(id)) {
-                    cout << "Invalid ID format. ID should be 3 digits." << endl;
-                    break;
-                }
-                cout << "Enter item name: ";
-                cin.ignore();
-                getline(cin, name);
-                cout << "Enter quantity: ";
-                int quantity = getValidInt();
-                cout << "Enter price: ";
-                double price = getValidDouble();
+            cout << "Enter item name: ";
+            cin.ignore();
+            getline(cin, name);
+            cout << "Enter quantity: ";
+            quantity = getValidInt();
+            cout << "Enter price: ";
+            price = getValidDouble();
 
-                inventory.addItem(id, name, quantity, price, category);
-                break;
+            inventory.addItem(id, name, quantity, price, category);
+        } 
+        
+        else if (choice == "2") {
+            if (inventory.isEmpty()) {
+                cout << "No items added yet!" << endl;
+            } else {
+                string id;
+                cout << "\nEnter item ID to update: ";
+                cin >> id;
+                inventory.updateItem(id);
+                cout << "\n";
             }
-            case 2: {
-                if (inventory.isEmpty()) {
-                    system("cls");
-                    cout << "No items added yet!" << endl;
-                } else {
-                    string id;
-                    cout << "Enter item ID to update: ";
-                    cin >> id;
-                    inventory.updateItem(id);
-                }
-            break;
+        } 
+        
+        else if (choice == "3") {
+            if (inventory.isEmpty()) {
+                cout << "No items added yet!" << endl;
+            } else {
+                string id;
+                cout << "Enter item ID to remove: ";
+                cin >> id;
+                inventory.removeItem(id);
+                cout << "\n";
             }
-            case 3: {
-                if (inventory.isEmpty()) {
-                    system("cls");
-                    cout << "No items added yet!" << endl;
-                } else {
-                    string id;
-                    cout << "Enter item ID to remove: ";
-                    cin >> id;
-                    inventory.removeItem(id);
-                }
-                break;
-            }
-            case 4: {
-                if (inventory.isEmpty()) {
-                    system("cls");
-                    cout << "No items added yet!" << endl;
-                } else {
-                    cout << "Select category (1: Clothing, 2: Electronics, 3: Entertainment): ";
-                    int category = getValidInt();
-                    inventory.displayItemsByCategory(category);
-                }
-                break;
-            }
-            case 5:
-                if (inventory.isEmpty()) {
-                    system("cls");
-                    cout << "No items added yet!" << endl;
-                } else {
-                    inventory.displayAllItems();
-                }
-                break;
-            case 6: {
-                if (inventory.isEmpty()) {
-                    system("cls");
-                    cout << "No items added yet!" << endl;
-                } else {
-                    string id;
-                    cout << "Enter item ID to search: ";
-                    cin >> id;
-                    inventory.searchItem(id);
-                }
-                break;
-            }
-            case 7: {
-                if (inventory.isEmpty()) {
-                    system("cls");
-                    cout << "No items added yet!" << endl;
-                } else {
-                    int choice;
-                    cout << "[1] Sort by Quantity\n[2] Sort by Price\nEnter choice: ";
-                    cin >> choice;
+        } 
+        
+        else if (choice == "4") {
+            if (inventory.isEmpty()) {
+                cout << "No items added yet!" << endl;
+            } 
+            else {
+                int category;
+                while (true) {
+                    cout << "\nSelect category:\n[1] Clothing\n[2] Electronics\n[3] Entertainment\nEnter choice: ";
+                    category = getValidInt();
 
-                    bool byQuantity = (choice == 1);
-                    cout << "[1] Ascending\n[2] Descending\nEnter choice: ";
-                    cin >> choice;
-                    bool ascending = (choice == 1);
-                    inventory.sortItems(byQuantity, ascending);
+                    if (cin.fail() || (category != 1 && category != 2 && category != 3)) {
+                        cin.clear();
+                        cout << "Invalid choice! Please enter 1, 2, or 3." << endl;
+                    } else {
+                        break;
+                    }
                 }
-                break;
+                cout << "\n";
+                inventory.displayItemsByCategory(category);
+                cout << "\n";
             }
-            case 8:
-                if (inventory.isEmpty()) {
-                    system("cls");
-                    cout << "No items added yet!" << endl;
-                } else {
-                    inventory.displayLowStockItems();
+        } 
+        
+        else if (choice == "5") {
+            if (inventory.isEmpty()) {
+                cout << "No items added yet!" << endl;
+            } else {
+                cout << "\n";
+                inventory.displayAllItems();
+                cout << "\n";
+            }
+        } 
+       
+        else if (choice == "6") {
+            if (inventory.isEmpty()) {
+                cout << "No items added yet!" << endl;
+            } else {
+                string id;
+                cout << "\nEnter item ID to search: ";
+                cin >> id;
+                inventory.searchItem(id);
+                cout << "\n";
+            }
+        } 
+        
+        else if (choice == "7") {
+            if (inventory.isEmpty()) {
+                cout << "No items added yet!" << endl;
+            } else {
+                int sortType, sortOrder;
+
+                while (true) {
+                    cout << "\n[1] Sort by Quantity\n[2] Sort by Price\nEnter choice: ";
+                    sortType = getValidInt();
+
+                    if (sortType == 1 || sortType == 2) {
+                        break; 
+                    } else {
+                        cout << "Invalid choice. Please enter 1 or 2." << endl;
+                    }
                 }
-                break;
-            case 9:
-                cout << "Exiting the program." << endl;
-                break;
-            default:
-                cout << "Invalid choice! Please try again." << endl;
-                break;
+
+                bool byQuantity = (sortType == 1);
+
+                while (true) {
+                    cout << "\n[1] Ascending\n[2] Descending\nEnter choice: ";
+                    sortOrder = getValidInt();
+
+                    if (sortOrder == 1 || sortOrder == 2) {
+                        break; 
+                    } else {
+                        cout << "Invalid choice. Please enter 1 or 2." << endl;
+                    }
+                }
+
+                bool ascending = (sortOrder == 1);
+                cout << "\n";
+                inventory.sortItems(byQuantity, ascending);
+            }
+            cout << "\n";
         }
-        cout << "\n";
-        system("pause");
-        system("cls");
-    } while (choice != 9);
+        
+        else if (choice == "8") {
+            if (inventory.isEmpty()) {
+                cout << "No items added yet!" << endl;
+            } else {
+                cout << "\n";
+                inventory.displayLowStockItems();
+                cout << "\n";
+            }
+        } 
+        
+        else if (choice == "9") {
+            cout << "\n";
+            cout << "Exiting program..." << endl;
+        } 
+        
+        else {
+            cout << "\nInvalid option. Please try again." << endl;
+            cout << endl;
+            continue;
+        }
+    } while (choice != "9");
 
     return 0;
 }
-
