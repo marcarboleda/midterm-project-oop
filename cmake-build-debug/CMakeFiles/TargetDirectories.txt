@@ -1,0 +1,3 @@
+D:/Marc/DLSL/2nd Year/1st Sem/OOPROG/Midterms/midterm-project-oop/cmake-build-debug/CMakeFiles/midterm_project_oop.dir
+D:/Marc/DLSL/2nd Year/1st Sem/OOPROG/Midterms/midterm-project-oop/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Marc/DLSL/2nd Year/1st Sem/OOPROG/Midterms/midterm-project-oop/cmake-build-debug/CMakeFiles/rebuild_cache.dir
