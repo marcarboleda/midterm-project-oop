@@ -38,17 +38,16 @@ public:
     }
 };
 
-class Inventory {
-private:
-    Item* items[100];
-    int itemCount;
+
+class InventoryBase {
+protected:
+    Item* items[100] = {};
+    int itemCount = 0;
 
 public:
-    Inventory() : itemCount(0) {}
-
-    ~Inventory() {
+    ~InventoryBase() {
         for (int i = 0; i < itemCount; ++i) {
-            delete items[i];  
+            delete items[i];
         }
     }
 
@@ -67,8 +66,35 @@ public:
         }
     }
 
+    // virtual functions
+    virtual void addItem(string id, string name, int quantity, double price, int category) = 0;
+
+    virtual void updateItem(string id) = 0;
+
+    virtual void removeItem(string id) = 0;
+
+    virtual void displayItemsByCategory(int category) = 0;
+
+    virtual void displayAllItems() = 0;
+
+    virtual void searchItem(string id) = 0;
+
+    virtual void sortItems(bool byQuantity, bool ascending) = 0;
+
+    bool isEmpty() const {
+        return itemCount == 0;
+    }
+
+    virtual void displayLowStockItems() = 0;
+};
+
+class Inventory: public InventoryBase {
+private:
+
+public:
+
     // Add new item to inventory
-    void addItem(string id, string name, int quantity, double price, int category) {
+    void addItem(string id, string name, int quantity, double price, int category) override {
         if (!isValidCategory(category)) {
             cout << "Category does not exist!" << endl;
             return;
@@ -83,9 +109,18 @@ public:
     }
 
     // Update item quantity or price
-    void updateItem(string id) {
+    void updateItem(string id) override  {
+        // convert id to lowercase
+        string lowercaseId = id;
+        for (size_t i = 0; i < id.length(); ++i) {
+            lowercaseId[i] = tolower(id[i]);
+        }
         for (int i = 0; i < itemCount; ++i) {
-            if (items[i]->getId() == id) {
+            auto lowercaseItemId = items[i]->getId();
+            for (size_t i = 0; i < lowercaseItemId.length(); ++i) {
+                lowercaseItemId[i] = tolower(lowercaseItemId[i]);
+            }
+            if (lowercaseId == lowercaseItemId) {
                 int choice;
                 while (true) {
                     cout << "\n[1] Update Quantity\n[2] Update Price\nEnter choice: ";
@@ -141,12 +176,12 @@ public:
     }
 
     // Remove item from inventory
-    void removeItem(string id) {
+    void removeItem(string id) override {
         for (int i = 0; i < itemCount; ++i) {
             if (items[i]->getId() == id) {
                 cout << "Item " << items[i]->getName() << " has been removed from the inventory." << endl;
-                delete items[i]; 
-                items[i] = items[--itemCount];  
+                delete items[i];
+                items[i] = items[--itemCount];
                 return;
             }
         }
@@ -154,7 +189,7 @@ public:
     }
 
     // Display all items by category
-    void displayItemsByCategory(int category) const {
+    void displayItemsByCategory(int category) override {
         if (!isValidCategory(category)) {
             cout << "Category does not exist!" << endl;
             return;
@@ -174,7 +209,7 @@ public:
     }
 
     // Display all items in a table format
-    void displayAllItems() const {
+    void displayAllItems() override {
         if (itemCount == 0) {
             cout << "No items in the inventory." << endl;
         } else {
@@ -187,7 +222,7 @@ public:
     }
 
     // Search item by ID
-    void searchItem(string id) const {
+    void searchItem(const string id) override {
         for (int i = 0; i < itemCount; ++i) {
             if (items[i]->getId() == id) {
                 cout << left << setw(10) << "ID" << setw(20) << "Name" << setw(10) << "Quantity" << setw(10) << "Price" << setw(15) << "Category" << endl;
@@ -199,20 +234,20 @@ public:
         cout << "Item not found!" << endl;
     }
 
-    // Sort items (by quantity or price, ascending or descending) 
-    void sortItems(bool byQuantity, bool ascending) {
+    // Sort items (by quantity or price, ascending or descending)
+    void sortItems(bool byQuantity, bool ascending) override {
         for (int i = 0; i < itemCount - 1; ++i) {
             for (int j = 0; j < itemCount - i - 1; ++j) {
                 bool condition;
 
                 if (byQuantity) {
                     // Sorting by quantity
-                    condition = ascending 
+                    condition = ascending
                                 ? (items[j]->getQuantity() > items[j + 1]->getQuantity())
                                 : (items[j]->getQuantity() < items[j + 1]->getQuantity());
                 } else {
                     // Sorting by price
-                    condition = ascending 
+                    condition = ascending
                                 ? (items[j]->getPrice() > items[j + 1]->getPrice())
                                 : (items[j]->getPrice() < items[j + 1]->getPrice());
                 }
@@ -235,7 +270,7 @@ public:
     }
 
     // Display low stock items
-    void displayLowStockItems() const {
+    void displayLowStockItems() override {
         bool found = false;
         cout << left << setw(10) << "ID" << setw(20) << "Name" << setw(10) << "Quantity" << setw(10) << "Price" << setw(15) << "Category" << endl;
         cout << "---------------------------------------------------------------------" << endl;
@@ -248,19 +283,17 @@ public:
         if (!found) cout << "No low stock items found." << endl;
     }
 
-    bool isEmpty() const {
-        return itemCount == 0;
-    }
+
 };
 
 bool isValidItemId(const string& id) {
-    if (id.length() != 3) {
-        cout << "Invalid ID. It should must be three numbers." << endl;
-        return false;
-    }
+    // if (id.length() != 3) {
+    //     cout << "Invalid ID. It should must be three numbers." << endl;
+    //     return false;
+    // }
     for (size_t i = 0; i < id.length(); ++i) {
-        if (!isdigit(id[i])) {
-            cout << "Invalid ID. Please input numbers only" << endl;
+        if (!isalnum(id[i])) {
+            cout << "Invalid ID. Try again" << endl;
             return false;
         }
     }
@@ -277,7 +310,7 @@ double getValidDouble() {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Invalid input. Please enter a positive number: ";
         } else {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return value;
         }
     }
@@ -292,12 +325,12 @@ int getValidInt() {
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "Invalid input. Please enter a positive integer: ";
         } else {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             return value;
         }
     }
 }
- 
+
 int main() {
     Inventory inventory;
     string choice;
@@ -317,7 +350,7 @@ int main() {
         cout << "Enter your choice: ";
         cin >> choice;
 
-        if (cin.fail() || (choice != "1" && choice != "2" && choice != "3" && 
+        if (cin.fail() || (choice != "1" && choice != "2" && choice != "3" &&
                            choice != "4" && choice != "5" && choice != "6" &&
                            choice != "7" && choice != "8" && choice != "9")) {
             cin.clear();
@@ -344,10 +377,10 @@ int main() {
                     }
                 }
 
-            cout << "Enter item ID (3 digits): ";
+            cout << "Enter item ID: ";
             cin >> id;
             while (!isValidItemId(id)) {
-                cout << "Enter item ID (3 digits): ";
+                cout << "Enter item ID: ";
                 cin >> id;
             }
 
@@ -360,8 +393,8 @@ int main() {
             price = getValidDouble();
 
             inventory.addItem(id, name, quantity, price, category);
-        } 
-        
+        }
+
         else if (choice == "2") {
             if (inventory.isEmpty()) {
                 cout << "No items added yet!" << endl;
@@ -372,8 +405,8 @@ int main() {
                 inventory.updateItem(id);
                 cout << "\n";
             }
-        } 
-        
+        }
+
         else if (choice == "3") {
             if (inventory.isEmpty()) {
                 cout << "No items added yet!" << endl;
@@ -384,12 +417,12 @@ int main() {
                 inventory.removeItem(id);
                 cout << "\n";
             }
-        } 
-        
+        }
+
         else if (choice == "4") {
             if (inventory.isEmpty()) {
                 cout << "No items added yet!" << endl;
-            } 
+            }
             else {
                 int category;
                 while (true) {
@@ -407,8 +440,8 @@ int main() {
                 inventory.displayItemsByCategory(category);
                 cout << "\n";
             }
-        } 
-        
+        }
+
         else if (choice == "5") {
             if (inventory.isEmpty()) {
                 cout << "No items added yet!" << endl;
@@ -417,8 +450,8 @@ int main() {
                 inventory.displayAllItems();
                 cout << "\n";
             }
-        } 
-       
+        }
+
         else if (choice == "6") {
             if (inventory.isEmpty()) {
                 cout << "No items added yet!" << endl;
@@ -429,8 +462,8 @@ int main() {
                 inventory.searchItem(id);
                 cout << "\n";
             }
-        } 
-        
+        }
+
         else if (choice == "7") {
             if (inventory.isEmpty()) {
                 cout << "No items added yet!" << endl;
@@ -442,7 +475,7 @@ int main() {
                     sortType = getValidInt();
 
                     if (sortType == 1 || sortType == 2) {
-                        break; 
+                        break;
                     } else {
                         cout << "Invalid choice. Please enter 1 or 2." << endl;
                     }
@@ -455,7 +488,7 @@ int main() {
                     sortOrder = getValidInt();
 
                     if (sortOrder == 1 || sortOrder == 2) {
-                        break; 
+                        break;
                     } else {
                         cout << "Invalid choice. Please enter 1 or 2." << endl;
                     }
@@ -467,7 +500,7 @@ int main() {
             }
             cout << "\n";
         }
-        
+
         else if (choice == "8") {
             if (inventory.isEmpty()) {
                 cout << "No items added yet!" << endl;
@@ -476,13 +509,13 @@ int main() {
                 inventory.displayLowStockItems();
                 cout << "\n";
             }
-        } 
-        
+        }
+
         else if (choice == "9") {
             cout << "\n";
             cout << "Exiting program..." << endl;
-        } 
-        
+        }
+
         else {
             cout << "\nInvalid option. Please try again." << endl;
             cout << endl;
